@@ -1,0 +1,32 @@
+services:
+  - type: web
+    name: paracel-tracking-system
+    env: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    scaling:
+      minInstances: 1
+      maxInstances: 1
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: ConnectionStrings__DefaultConnection
+        sync: false
+      - key: EmailSettings__SmtpServer
+        sync: false
+      - key: EmailSettings__SmtpPort
+        sync: false
+      - key: EmailSettings__SmtpUsername
+        sync: false
+      - key: EmailSettings__SmtpPassword
+        sync: false
+      - key: EmailSettings__SenderName
+        sync: false
+      - key: EmailSettings__SenderEmail
+        sync: false
+      - key: SmsSettings__AccountSid
+        sync: false
+      - key: SmsSettings__AuthToken
+        sync: false
+      - key: SmsSettings__TwilioPhoneNumber
+        sync: false
