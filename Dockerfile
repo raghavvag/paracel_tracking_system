@@ -10,6 +10,7 @@ RUN dotnet restore "WebApplication1/WebApplication1.csproj"
 COPY . .
 WORKDIR "/src/WebApplication1"
 RUN dotnet build "WebApplication1.csproj" -c Release -o /app/build
+RUN dotnet tool install --global dotnet-ef # Install EF Core tools
 
 FROM build AS publish
 RUN dotnet publish "WebApplication1.csproj" -c Release -o /app/publish /p:UseAppHost=false
@@ -17,4 +18,7 @@ RUN dotnet publish "WebApplication1.csproj" -c Release -o /app/publish /p:UseApp
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+# Copy EF Core tools from build stage
+COPY --from=build /root/.dotnet/tools /root/.dotnet/tools
+ENV PATH="/root/.dotnet/tools:${PATH}" # Add EF Core tools to PATH
 ENTRYPOINT ["dotnet", "WebApplication1.dll"]
