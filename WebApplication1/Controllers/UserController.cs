@@ -20,9 +20,6 @@ namespace WebApplication1.Controllers
         [HttpPost]
         public async Task<ActionResult<User>> CreateUser(User user)
         {
-            // Ensure ID is not set manually
-            user.Id = 0; // This will force PostgreSQL to assign an auto-incremented ID
-            
             _context.Users.Add(user);
             await _context.SaveChangesAsync();
             return CreatedAtAction("CreateUser", new { id = user.Id }, user);
