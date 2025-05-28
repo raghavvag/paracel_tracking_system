@@ -1,9 +1,20 @@
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.EntityFrameworkCore;
 using WebApplication1.Data;
 using WebApplication1.Services;
 using Npgsql.EntityFrameworkCore.PostgreSQL;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure forwarded headers
+builder.Services.Configure<ForwardedHeadersOptions>(options =>
+{
+    options.ForwardedHeaders =
+        ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto;
+    // In a production environment, you might want to specify known proxies if possible.
+    // options.KnownNetworks.Clear();
+    // options.KnownProxies.Clear();
+});
 
 // Add services to the container
 builder.Services.AddControllers();
@@ -17,15 +28,16 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseNpgsql(connectionString);
 });
 
-// Add CORS policy if needed
+// Add CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(policy =>
-    {
-        policy.AllowAnyOrigin() // Allow all origins for now
-              .AllowAnyHeader()
-              .AllowAnyMethod();
-    });
+    options.AddPolicy("AllowGitHubPages",
+        policy =>
+        {
+            policy.WithOrigins("https://raghavvag.github.io")
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
 });
 
 // Add service registrations
@@ -36,6 +48,8 @@ builder.Services.AddScoped<IQRCodeService, QRCodeService>();
 
 var app = builder.Build();
 
+app.UseForwardedHeaders(); // Use forwarded headers early
+
 // Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
@@ -43,9 +57,19 @@ if (app.Environment.IsDevelopment())
     app.UseSwagger();
     app.UseSwaggerUI();
 }
+else
+{
+    // Basic production error handling (optional, logs are primary)
+    // app.UseExceptionHandler("/Error"); // You would need to create an Error handling page/endpoint
+    app.UseHsts(); // HTTP Strict Transport Security
+}
 
-app.UseHttpsRedirection();
-app.UseCors();
+app.UseHttpsRedirection(); // Should work better with UseForwardedHeaders
+
+app.UseRouting(); // Explicitly add UseRouting
+
+app.UseCors("AllowGitHubPages"); // Apply the named CORS policy
+
 app.UseAuthorization();
 app.MapControllers();
 
