@@ -22,7 +22,7 @@ builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(policy =>
     {
-        policy.WithOrigins("https://raghavvag.github.io") // Allow your GitHub Pages origin
+        policy.AllowAnyOrigin() // Allow all origins for now
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
