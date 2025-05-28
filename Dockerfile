@@ -20,5 +20,6 @@ WORKDIR /app
 COPY --from=publish /app/publish .
 # Copy EF Core tools from build stage
 COPY --from=build /root/.dotnet/tools /root/.dotnet/tools
-ENV PATH="/root/.dotnet/tools:${PATH}" # Add EF Core tools to PATH
+# Add EF Core tools to PATH
+ENV PATH="/root/.dotnet/tools:${PATH}"
 ENTRYPOINT ["dotnet", "WebApplication1.dll"]
