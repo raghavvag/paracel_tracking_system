@@ -5,6 +5,7 @@ namespace WebApplication1.Services
     public interface ITrackingService
     {
         string GenerateTrackingId();
+        string GenerateOtp();
     }
 
     public class TrackingService : ITrackingService
@@ -18,9 +19,15 @@ namespace WebApplication1.Services
             
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
             var randomPart = new string(Enumerable.Repeat(chars, 6)
-                .Select(s => s[random.Next(s.Length)]).ToArray());
-            
+                .Select(s => s[random.Next(s.Length)]).ToArray());            
             return $"PT-{year}{month}-{randomPart}";
+        }
+
+        public string GenerateOtp()
+        {
+            // Generate a 6-digit OTP
+            var random = new Random();
+            return random.Next(100000, 1000000).ToString();
         }
     }
 }

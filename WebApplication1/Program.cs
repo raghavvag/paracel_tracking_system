@@ -34,9 +34,14 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowGitHubPages",
         policy =>
         {
-            policy.WithOrigins("https://raghavvag.github.io")
-                  .AllowAnyHeader()
-                  .AllowAnyMethod();
+            policy.WithOrigins(
+                    "https://raghavvag.github.io",
+                    "http://127.0.0.1:5501",  // Local development server
+                    "http://localhost:5501"    // Alternative local development server
+                )
+                .AllowAnyHeader()
+                .AllowAnyMethod()
+                .AllowCredentials();  // Allow credentials if you're sending cookies/auth
         });
 });
 

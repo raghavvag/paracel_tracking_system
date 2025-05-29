@@ -210,6 +210,62 @@ namespace WebApplication1.Controllers
 
             return NoContent();
         }
+        [HttpPost("otp/{shipmentId}")]
+        public async Task<ActionResult<DeliveryOtp>> CreateDeliveryOtp(int shipmentId)
+        {
+            var shipment = await _context.Shipments.FindAsync(shipmentId);
+            if (shipment == null)
+            {
+                return NotFound("Shipment not found.");
+            }
+
+            // Generate OTP
+            var otp = new DeliveryOtp
+            {
+                Otp = _trackingService.GenerateOtp(),
+                ShipmentId = shipmentId
+            };
+
+            _context.DeliveryOtps.Add(otp);
+            await _context.SaveChangesAsync();
+
+            // Send OTP via email
+            string emailBody = $@"
+                <html>
+                <body>
+                    <h2>Your OTP for Delivery</h2>
+                    <p>Dear {shipment.RecipientName},</p>
+                    <p>Your OTP for delivery is: <strong>{otp.Otp}</strong></p>
+                    <p>Please use this OTP to confirm the delivery of your parcel.</p>
+                </body>
+                </html>";
+
+            await _emailService.SendEmailAsync(shipment.UserEmail, "Delivery OTP", emailBody);
+
+            return CreatedAtAction(nameof(GetShipment), new { id = shipmentId }, otp);
+        }
+        [HttpPost("otp/verify/{shipmentId}")]
+        public async Task<IActionResult> VerifyDeliveryOtp(int shipmentId, [FromBody] string otpCode)
+        {
+            var otp = await _context.DeliveryOtps
+                .FirstOrDefaultAsync(o => o.ShipmentId == shipmentId && o.Otp == otpCode && !o.IsUsed);
+
+            if (otp == null)
+            {
+                return BadRequest("Invalid or already used OTP.");
+            }
+
+            // Mark OTP as used
+            otp.IsUsed = true;
+            _context.Shipments
+                .Where(s => s.Id == shipmentId)
+                .ToList()
+                .ForEach(s => s.Status = "Delivered"); // Update shipment status to Delivered
+            await _context.SaveChangesAsync();
+
+            return Ok("OTP verified successfully.");
+        }
+
 
         private bool ShipmentExists(int id)
         {
