@@ -78,4 +78,16 @@ app.UseCors("AllowGitHubPages"); // Apply the named CORS policy
 app.UseAuthorization();
 app.MapControllers();
 
+// Apply migrations at startup
+if (app.Environment.IsProduction())
+{
+    using (var scope = app.Services.CreateScope())
+    {
+        var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+        Console.WriteLine("Applying migrations...");
+        db.Database.Migrate();
+        Console.WriteLine("Migrations applied successfully!");
+    }
+}
+
 app.Run();
